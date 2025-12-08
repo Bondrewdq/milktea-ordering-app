@@ -1,23 +1,23 @@
 package routes
 
 import (
-    "database/sql"
     "github.com/Bondrewdq/milktea-ordering-app/controllers"
-
     "github.com/gin-gonic/gin"
+    "gorm.io/gorm"
 )
 
-func SetupRouter(db *sql.DB) *gin.Engine {
+func SetupRouter(db *gorm.DB) *gin.Engine {
     router := gin.Default()
 
-    // 初始化控制器
     teaCtrl := &controllers.TeaController{DB: db}
 
-    // API 路由组
     api := router.Group("/api")
     {
         api.GET("/teas", teaCtrl.GetAllTeas)
+        api.GET("/teas/:id", teaCtrl.GetTeaByID)
         api.POST("/teas", teaCtrl.CreateTea)
+        api.PUT("/teas/:id", teaCtrl.UpdateTea)
+        api.DELETE("/teas/:id", teaCtrl.DeleteTea)
     }
 
     return router

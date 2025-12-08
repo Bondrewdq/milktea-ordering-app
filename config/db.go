@@ -1,31 +1,22 @@
 package config
 
 import (
-    "database/sql"
     "log"
-
-    _ "github.com/mattn/go-sqlite3"
+    "github.com/Bondrewdq/milktea-ordering-app/models"
+    "gorm.io/driver/sqlite"
+    "gorm.io/gorm"
 )
 
-func InitDB() *sql.DB {
-    db, err := sql.Open("sqlite3", "./milktea.db")
+func InitDB() *gorm.DB {
+    db, err := gorm.Open(sqlite.Open("milktea.db"), &gorm.Config{})
     if err != nil {
         log.Fatal("Failed to connect database:", err)
     }
 
-    // 创建表（示例：奶茶产品）
-    createTableSQL := `
-    CREATE TABLE IF NOT EXISTS teas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        price REAL NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );`
-    
-    if _, err := db.Exec(createTableSQL); err != nil {
-        log.Fatal("Failed to create table:", err)
-    }
+    // 自动迁移表结构（创建/更新表）
+    db.AutoMigrate(&models.Milktea{})
+    //db.AutoMigrate(&models.Order{}) // 示例：后续可扩展订单模型
 
-    log.Println("Database initialized successfully")
+    log.Println("Database initialized with GORM")
     return db
 }

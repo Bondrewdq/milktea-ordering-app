@@ -1,40 +1,27 @@
 package controllers
 
 import (
-	"database/sql"
-	"net/http"
-
-	"github.com/Bondrewdq/milktea-ordering-app/models"
-
-	"github.com/gin-gonic/gin"
+    "net/http"
+    "github.com/Bondrewdq/milktea-ordering-app/models"
+    "github.com/gin-gonic/gin"
+    "gorm.io/gorm"
 )
 
 type TeaController struct {
-    DB *sql.DB
+    DB *gorm.DB
 }
 
 // 获取所有奶茶
 func (tc *TeaController) GetAllTeas(c *gin.Context) {
-    rows, err := tc.DB.Query("SELECT id, name, price, created_at FROM teas")
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    var teas []models.Milktea
+    if result := tc.DB.Find(&teas); result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
         return
     }
-    defer rows.Close()
-
-    var teas []models.Milktea
-    for rows.Next() {
-        var tea models.Milktea
-        if err := rows.Scan(&tea.ID, &tea.Name, &tea.Price, &tea.CreatedAt); err != nil {
-            continue
-        }
-        teas = append(teas, tea)
-    }
-
     c.JSON(http.StatusOK, teas)
 }
 
-// 添加奶茶（示例）
+// 添加奶茶
 func (tc *TeaController) CreateTea(c *gin.Context) {
     var tea models.Milktea
     if err := c.ShouldBindJSON(&tea); err != nil {
@@ -42,13 +29,48 @@ func (tc *TeaController) CreateTea(c *gin.Context) {
         return
     }
 
-    result, err := tc.DB.Exec("INSERT INTO teas (name, price) VALUES (?, ?)", tea.Name, tea.Price)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+    if result := tc.DB.Create(&tea); result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
         return
     }
 
-    id, _ := result.LastInsertId()
-    tea.ID = int(id)
     c.JSON(http.StatusCreated, tea)
+}
+
+// 根据ID查询
+func (tc *TeaController) GetTeaByID(c *gin.Context) {
+    id := c.Param("id")
+    var tea models.Milktea
+    if result := tc.DB.First(&tea, id); result.Error != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Tea not found"})
+        return
+    }
+    c.JSON(http.StatusOK, tea)
+}
+
+// 更新奶茶
+func (tc *TeaController) UpdateTea(c *gin.Context) {
+    id := c.Param("id")
+    var tea models.Milktea
+    if err := c.ShouldBindJSON(&tea); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    if result := tc.DB.Model(&models.Milktea{}).Where("id = ?", id).Updates(tea); result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Updated successfully"})
+}
+
+// 删除奶茶
+func (tc *TeaController) DeleteTea(c *gin.Context) {
+    id := c.Param("id")
+    if result := tc.DB.Delete(&models.Milktea{}, id); result.Error != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
 }
