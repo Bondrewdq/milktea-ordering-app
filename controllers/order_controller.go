@@ -1,23 +1,35 @@
+// Package controllers 提供了应用程序的HTTP控制器层
+// 包含订单、用户、产品等业务逻辑的HTTP接口处理
 package controllers
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Bondrewdq/milktea-ordering-app/controllers/request"
-	"github.com/Bondrewdq/milktea-ordering-app/controllers/response"
+	// "github.com/Bondrewdq/milktea-ordering-app/controllers/response"
 	"github.com/Bondrewdq/milktea-ordering-app/services"
+	"github.com/gin-gonic/gin"
 )
 
 type OrderController struct {
-	orderService services.OrderService
+	service services.OrderService
 }
 
-func NewOrderController(svc services.OrderService) *OrderController {
-	return &OrderController{orderService: svc}
+func NewOrderController(service services.OrderService) *OrderController {
+	return &OrderController{service: service}
 }
 
+// CreateOrder 下单接口
+// @Summary 创建订单
+// @Description 用户下单购买奶茶
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param request body request.CreateOrderRequest true "下单请求"
+// @Success 200 {object} response.CreateOrderResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /orders [post]
 func (ctrl *OrderController) CreateOrder(c *gin.Context) {
 	var req request.CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -25,17 +37,14 @@ func (ctrl *OrderController) CreateOrder(c *gin.Context) {
 		return
 	}
 
-	order, err := ctrl.orderService.CreateOrder(c.Request.Context(), req)
+	order, err := ctrl.service.CreateOrder(c.Request.Context(), req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.OrderResponse{
-		OrderID:    strconv.FormatUint(uint64(order.ID), 10),
-		Status:     strconv.Itoa(order.Status),
-		TotalPrice: order.TotalPrice,
-		Message:    "订单创建成功，等待支付",
-		CreatedAt:  order.CreatedAt,
+	c.JSON(http.StatusOK, gin.H{
+		"order_id": order.ID,
+		"message":  "Order created successfully",
 	})
 }
