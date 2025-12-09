@@ -11,6 +11,7 @@ type TeaController struct {
     DB *gorm.DB
 }
 
+
 // 获取所有奶茶
 func (tc *TeaController) GetAllTeas(c *gin.Context) {
     var teas []models.Milktea
@@ -20,6 +21,7 @@ func (tc *TeaController) GetAllTeas(c *gin.Context) {
     }
     c.JSON(http.StatusOK, teas)
 }
+
 
 // 添加奶茶
 func (tc *TeaController) CreateTea(c *gin.Context) {
@@ -37,6 +39,7 @@ func (tc *TeaController) CreateTea(c *gin.Context) {
     c.JSON(http.StatusCreated, tea)
 }
 
+
 // 根据ID查询
 func (tc *TeaController) GetTeaByID(c *gin.Context) {
     id := c.Param("id")
@@ -47,6 +50,7 @@ func (tc *TeaController) GetTeaByID(c *gin.Context) {
     }
     c.JSON(http.StatusOK, tea)
 }
+
 
 // 更新奶茶
 func (tc *TeaController) UpdateTea(c *gin.Context) {
@@ -64,6 +68,7 @@ func (tc *TeaController) UpdateTea(c *gin.Context) {
 
     c.JSON(http.StatusOK, gin.H{"message": "Updated successfully"})
 }
+
 
 // 删除奶茶
 func (tc *TeaController) DeleteTea(c *gin.Context) {

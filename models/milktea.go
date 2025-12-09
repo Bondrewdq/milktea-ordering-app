@@ -1,11 +1,10 @@
 package models
 
-import "time"
+import "gorm.io/gorm"
 
 type Milktea struct {
-    ID        uint      `gorm:"primaryKey" json:"id"`
+    gorm.Model  // 自动包含 ID, CreatedAt, UpdatedAt, DeletedAt
+
     Name      string    `gorm:"not null" json:"name"`
     Price     float64   `gorm:"not null" json:"price"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
 }
